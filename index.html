@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AOUSE</title>
+
+<style>
+*{box-sizing:border-box;font-family:system-ui,-apple-system}
+body{margin:0;background:#f7f8fa}
+header{background:#fff;padding:14px 16px;display:flex;justify-content:space-between;align-items:center}
+.logo{font-weight:700;font-size:18px}
+.btn{background:#222;color:#fff;border:none;border-radius:20px;padding:8px 16px;cursor:pointer}
+main{padding:16px}
+
+.post{background:#fff;border-radius:18px;padding:16px;margin-bottom:12px;cursor:pointer}
+.post small{color:#777}
+
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;z-index:10}
+.hidden{display:none}
+.box{background:#fff;width:92%;max-width:420px;border-radius:20px;padding:20px}
+input,textarea{width:100%;margin:8px 0;padding:10px;border-radius:12px;border:1px solid #ccc}
+textarea{min-height:80px}
+.row{display:flex;justify-content:space-between;gap:8px}
+img.thumb{max-width:100px;border-radius:8px;margin-top:6px}
+
+.comment{border-top:1px solid #eee;padding-top:10px;margin-top:10px}
+.reply{margin-left:16px;border-left:2px solid #eee;padding-left:10px;margin-top:6px}
+.badge{color:#4fa3ff;font-size:12px;margin-left:4px}
+</style>
+</head>
+
+<body>
+
+<header>
+  <div class="logo">AOUSE</div>
+  <button id="topBtn" class="btn">ARRIVE</button>
+</header>
+
+<main id="postList"></main>
+
+<div id="modal" class="modal hidden"></div>
+
+<script>
+/* ====== STORAGE ====== */
+let posts = JSON.parse(localStorage.getItem("AOUSE_POSTS")||"[]")
+let user = JSON.parse(localStorage.getItem("AOUSE_USER")||"null")
+
+/* ====== INIT ====== */
+if(posts.length===0){
+  localStorage.setItem("AOUSE_POSTS","[]")
+}
+renderPosts()
+updateTopBtn()
+
+/* ====== HEADER ====== */
+document.getElementById("topBtn").onclick=()=>{
+  if(user) openProfile()
+  else openLogin()
+}
+
+function updateTopBtn(){
+  document.getElementById("topBtn").innerText=user?"PROFILE":"ARRIVE"
+}
+
+/* ====== POSTS ====== */
+function renderPosts(){
+  const list=document.getElementById("postList")
+  list.innerHTML=""
+  posts.sort((a,b)=>b.pinned-a.pinned||b.time-a.time)
+  posts.forEach(p=>{
+    const d=document.createElement("div")
+    d.className="post"
+    d.innerHTML=`
+      ${p.pinned?"📌 ":""}<b>${p.title}</b><br>
+      <small>${p.author}${p.role!=="user"?'<span class="badge">✔</span>':""}</small>
+    `
+    d.onclick=()=>openPost(p.id)
+    list.appendChild(d)
+  })
+}
+
+/* ====== POST MODAL ====== */
+function openPost(id){
+  const p=posts.find(x=>x.id===id)
+  const m=document.getElementById("modal")
+  m.innerHTML=`
+  <div class="box">
+    <h3>${p.title}</h3>
+    <p>${p.content.replace(/\n/g,"<br>")}</p>
+    <hr>
+    <h4>댓글</h4>
+    <div id="comments"></div>
+    <input id="cName" placeholder="닉네임">
+    <textarea id="cText" placeholder="댓글 입력"></textarea>
+    <input type="file" id="cImg">
+    <button class="btn" onclick="addComment('${id}')">등록</button>
+    <br><br>
+    <button onclick="closeModal()">닫기</button>
+  </div>`
+  m.classList.remove("hidden")
+  renderComments(p)
+}
+
+function closeModal(){
+  document.getElementById("modal").classList.add("hidden")
+}
+
+/* ====== COMMENTS ====== */
+function renderComments(p){
+  const box=document.getElementById("comments")
+  box.innerHTML=""
+  p.comments.forEach((c,i)=>{
+    box.innerHTML+=`
+    <div class="comment">
+      <b>${c.author}</b><br>${c.text}
+      ${c.image?`<img src="${c.image}" class="thumb">`:""}
+      ${user?`<div class="reply">
+        <textarea id="r${i}" placeholder="대댓글"></textarea>
+        <input type="file" id="ri${i}">
+        <button onclick="addReply('${p.id}',${i})">등록</button>
+      </div>`:""}
+    </div>`
+  })
+}
+
+function addComment(pid){
+  const p=posts.find(x=>x.id===pid)
+  const name=document.getElementById("cName").value
+  const text=document.getElementById("cText").value
+  const file=document.getElementById("cImg").files[0]
+  if(!name||!text)return alert("입력")
+  if(file){
+    const r=new FileReader()
+    r.onload=()=>saveComment(p,name,text,r.result)
+    r.readAsDataURL(file)
+  }else saveComment(p,name,text,null)
+}
+
+function saveComment(p,name,text,img){
+  p.comments.push({author:name,text,image:img,replies:[]})
+  save()
+  openPost(p.id)
+}
+
+function addReply(pid,i){
+  const p=posts.find(x=>x.id===pid)
+  const text=document.getElementById("r"+i).value
+  const file=document.getElementById("ri"+i).files[0]
+  if(!text)return
+  if(file){
+    const r=new FileReader()
+    r.onload=()=>saveReply(p,i,text,r.result)
+    r.readAsDataURL(file)
+  }else saveReply(p,i,text,null)
+}
+
+function saveReply(p,i,text,img){
+  p.comments[i].replies.push({
+    author:user.nickname,
+    text,image:img
+  })
+  save()
+  openPost(p.id)
+}
+
+/* ====== LOGIN ====== */
+function openLogin(){
+  modal.innerHTML=`
+  <div class="box">
+    <h3>ARRIVE</h3>
+    <input id="lid" placeholder="ALLOW">
+    <input id="lpw" type="password" placeholder="ACODE">
+    <div class="row">
+      <button onclick="closeModal()">BACK</button>
+      <button class="btn" onclick="login()">GO</button>
+    </div>
+  </div>`
+  modal.classList.remove("hidden")
+}
+
+function login(){
+  const id=document.getElementById("lid").value
+  if(!id)return
+  user={id,nickname:id,avatar:null,role:"user"}
+  localStorage.setItem("AOUSE_USER",JSON.stringify(user))
+  updateTopBtn()
+  closeModal()
+}
+
+/* ====== PROFILE ====== */
+function openProfile(){
+  modal.innerHTML=`
+  <div class="box">
+    <h3>PROFILE</h3>
+    <input id="pn" value="${user.nickname}">
+    <input type="file" id="pi">
+    <div class="row">
+      <button onclick="closeModal()">CANCEL</button>
+      <button class="btn" onclick="saveProfile()">SAVE</button>
+    </div>
+  </div>`
+  modal.classList.remove("hidden")
+}
+
+function saveProfile(){
+  const n=document.getElementById("pn").value
+  const f=document.getElementById("pi").files[0]
+  if(f){
+    const r=new FileReader()
+    r.onload=()=>{user.nickname=n;user.avatar=r.result;finishProfile()}
+    r.readAsDataURL(f)
+  }else{user.nickname=n;finishProfile()}
+}
+
+function finishProfile(){
+  localStorage.setItem("AOUSE_USER",JSON.stringify(user))
+  closeModal()
+}
+
+/* ====== SAVE ====== */
+function save(){
+  localStorage.setItem("AOUSE_POSTS",JSON.stringify(posts))
+}
+</script>
+
+</body>
+</html>
