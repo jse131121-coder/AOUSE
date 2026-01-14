@@ -6,36 +6,36 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
 *{box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont}
-body{margin:0;background:#f4f4f6;color:#111}
-header{position:sticky;top:0;background:#fff;padding:14px 16px;
-display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #ddd;z-index:10}
+body{margin:0;background:#f5f6f8;color:#111}
+header{position:sticky;top:0;z-index:10;
+background:#fff;border-bottom:1px solid #ddd;
+padding:14px 16px;display:flex;justify-content:space-between;align-items:center}
 .logo{font-weight:800;font-size:18px}
-button{cursor:pointer}
-.arrive{border:none;background:#111;color:#fff;border-radius:20px;padding:8px 16px}
+button{border:none;cursor:pointer}
+.arrive{background:#111;color:#fff;border-radius:20px;padding:8px 16px}
 
-main{padding:14px;max-width:700px;margin:auto;height:calc(100vh - 70px);overflow-y:auto}
+main{max-width:720px;margin:auto;padding:14px;
+height:calc(100vh - 64px);overflow-y:auto}
 
 .post{background:#fff;border-radius:14px;padding:14px;margin-bottom:12px}
-.post.pin{border:2px solid #111}
-.post-title{font-weight:700}
-.post-meta{font-size:12px;color:#666;margin-top:4px}
+.post.pin{outline:2px solid #111}
+.title{font-weight:700}
+.meta{font-size:12px;color:#666;margin-top:4px}
 
-.write-btn{position:fixed;bottom:20px;right:20px;
-background:#111;color:#fff;border:none;
-border-radius:50%;width:56px;height:56px;font-size:26px}
+.fab{position:fixed;right:20px;bottom:20px;
+width:56px;height:56px;border-radius:50%;
+background:#111;color:#fff;font-size:28px}
 
-input,textarea{width:100%;padding:10px;margin-top:8px;border-radius:8px;border:1px solid #ccc}
-
-.modal{position:fixed;top:0;left:0;width:100%;height:100%;
-background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;z-index:20}
-.box{background:#fff;border-radius:16px;padding:20px;width:90%;max-width:400px}
+input,textarea{width:100%;padding:10px;margin-top:8px;
+border-radius:8px;border:1px solid #ccc}
 
 .hidden{display:none}
+img.upload{width:100%;border-radius:10px;margin-top:10px}
 
 .comment{border-top:1px solid #eee;padding:8px 0;font-size:14px}
-.reply{margin-left:20px;font-size:13px;color:#333}
-img.upload{width:100%;border-radius:10px;margin-top:10px}
+.reply{margin-left:18px;font-size:13px;color:#333}
 .small{font-size:12px;color:#777}
+.back{margin-bottom:12px;font-size:14px}
 </style>
 </head>
 <body>
@@ -45,71 +45,90 @@ img.upload{width:100%;border-radius:10px;margin-top:10px}
   <button class="arrive" onclick="openLogin()">ARRIVE</button>
 </header>
 
-<main id="list"></main>
-
-<button class="write-btn" onclick="openWrite()">+</button>
-
-<!-- 모달 -->
-<div id="modal" class="modal hidden">
-  <div class="box" id="modalContent"></div>
-</div>
+<main id="app"></main>
+<button class="fab" onclick="openWrite()">+</button>
 
 <script>
-/* ===== 고정 계정 ===== */
+/* ===== 계정 ===== */
 const ADMIN = { id:"전서은", pw:"01024773752" }
-let currentUser = localStorage.getItem("user") || null
+let currentUser = JSON.parse(localStorage.getItem("user")||"null")
 
-/* ===== 데이터 ===== */
-let posts = JSON.parse(localStorage.getItem("posts")||"[]")
+/* ===== 데이터 로드 + 정규화 ===== */
+let posts = normalizePosts(
+  JSON.parse(localStorage.getItem("posts") || "[]")
+)
+
+function normalizePosts(arr){
+  if(!Array.isArray(arr)) return []
+  return arr.map(p=>({
+    id: p.id || Date.now()+Math.random(),
+    title: p.title || "",
+    content: p.content || "",
+    author: p.author || "",
+    img: p.img || null,
+    pin: !!p.pin,
+    comments: Array.isArray(p.comments)
+      ? p.comments.map(c=>({
+          id: c.id || Date.now()+Math.random(),
+          text: c.text || "",
+          replies: Array.isArray(c.replies) ? c.replies : []
+        }))
+      : []
+  }))
+}
+
+function save(){
+  localStorage.setItem("posts", JSON.stringify(posts))
+  renderList()
+}
 
 /* ===== 렌더 ===== */
-function render(){
-  const list = document.getElementById("list")
-  list.innerHTML=""
-  posts
-    .sort((a,b)=>b.pin-a.pin)
-    .forEach(p=>{
-      const d=document.createElement("div")
-      d.className="post"+(p.pin?" pin":"")
-      d.onclick=()=>openPost(p.id)
-      d.innerHTML=`
-        <div class="post-title">${p.title}</div>
-        <div class="post-meta">${p.author}</div>
-      `
-      list.appendChild(d)
-    })
+function renderList(){
+  const app=document.getElementById("app")
+  app.innerHTML=""
+  posts.sort((a,b)=>b.pin-a.pin).forEach(p=>{
+    const d=document.createElement("div")
+    d.className="post"+(p.pin?" pin":"")
+    d.onclick=()=>openPost(p.id)
+    d.innerHTML=`
+      <div class="title">${p.title}</div>
+      <div class="meta">${p.author}</div>
+    `
+    app.appendChild(d)
+  })
 }
-render()
+renderList()
 
 /* ===== 로그인 ===== */
 function openLogin(){
-  show(`
-    <h3>ARRIVE</h3>
-    <input placeholder="ALLOW (ID)" id="id">
-    <input placeholder="ACODE (비밀번호)" type="password" id="pw">
-    <button onclick="login()">ENTER</button>
-  `)
+  app.innerHTML=`
+    <div class="post">
+      <div class="back" onclick="renderList()">← 돌아가기</div>
+      <input id="id" placeholder="ALLOW (ID)">
+      <input id="pw" type="password" placeholder="ACODE (비밀번호)">
+      <button onclick="login()">ENTER</button>
+    </div>`
 }
 function login(){
-  const id=idv("id"), pw=idv("pw")
+  const id=v("id"), pw=v("pw")
   if(id===ADMIN.id && pw===ADMIN.pw){
-    currentUser=id
-    localStorage.setItem("user",id)
-    closeModal()
-    alert("관리자 로그인")
+    currentUser={id}
+    localStorage.setItem("user",JSON.stringify(currentUser))
+    renderList()
   }else alert("접근 불가")
 }
 
 /* ===== 글쓰기 ===== */
 function openWrite(){
   if(!currentUser) return alert("로그인 필요")
-  show(`
-    <h3>게시물 작성</h3>
-    <input id="title" placeholder="제목">
-    <textarea id="content" placeholder="내용"></textarea>
-    <input type="file" id="img">
-    <button onclick="savePost()">저장</button>
-  `)
+  app.innerHTML=`
+    <div class="post">
+      <div class="back" onclick="renderList()">← 돌아가기</div>
+      <input id="title" placeholder="제목">
+      <textarea id="content" placeholder="내용"></textarea>
+      <input type="file" id="img">
+      <button onclick="savePost()">저장</button>
+    </div>`
 }
 function savePost(){
   const file=document.getElementById("img").files[0]
@@ -122,80 +141,76 @@ function savePost(){
 function addPost(img){
   posts.push({
     id:Date.now(),
-    title:idv("title"),
-    content:idv("content"),
+    title:v("title"),
+    content:v("content"),
     img,
-    author:currentUser,
+    author:currentUser.id,
     pin:false,
     comments:[]
   })
   save()
 }
 
-/* ===== 게시물 보기 ===== */
+/* ===== 게시물 화면 ===== */
 function openPost(id){
   const p=posts.find(x=>x.id===id)
-  show(`
-    <h3>${p.title}</h3>
-    <div class="small">${p.author}</div>
-    <p>${p.content}</p>
-    ${p.img?`<img src="${p.img}" class="upload">`:""}
-    ${currentUser?`
-      <button onclick="togglePin(${id})">고정</button>
-      <button onclick="delPost(${id})">삭제</button>
-    `:""}
-    <h4>댓글</h4>
-    <input id="cmt" placeholder="댓글">
-    <button onclick="addComment(${id})">등록</button>
-    ${p.comments.map(c=>`
-      <div class="comment">
-        ${c.text}
-        ${currentUser?`<div class="reply">${c.reply||""}</div>
-        <input id="r${c.id}" placeholder="대댓글">
-        <button onclick="reply(${id},${c.id})">↳</button>`:""}
-      </div>
-    `).join("")}
-  `)
+  if(!p) return renderList()
+  app.innerHTML=`
+    <div class="post">
+      <div class="back" onclick="renderList()">← 돌아가기</div>
+      <div class="title">${p.title}</div>
+      <div class="small">${p.author}</div>
+      <p>${p.content}</p>
+      ${p.img?`<img src="${p.img}" class="upload">`:""}
+      ${currentUser?`
+        <button onclick="togglePin(${p.id})">고정</button>
+        <button onclick="deletePost(${p.id})">삭제</button>
+      `:""}
+      <h4>댓글</h4>
+      <input id="cmt">
+      <button onclick="addComment(${p.id})">등록</button>
+      ${p.comments.map(c=>`
+        <div class="comment">
+          ${c.text}
+          ${currentUser?`
+            <div class="reply">
+              ${c.replies.join("<br>")}
+              <input id="r${c.id}">
+              <button onclick="reply(${p.id},${c.id})">↳</button>
+            </div>`:""}
+        </div>
+      `).join("")}
+    </div>`
 }
 
-/* ===== 기능 ===== */
+/* ===== 댓글 ===== */
 function addComment(pid){
   const p=posts.find(x=>x.id===pid)
-  p.comments.push({id:Date.now(),text:idv("cmt"),reply:""})
-  save()
+  p.comments.push({id:Date.now(),text:v("cmt"),replies:[]})
+  save(); openPost(pid)
 }
 function reply(pid,cid){
   const p=posts.find(x=>x.id===pid)
   const c=p.comments.find(x=>x.id===cid)
-  c.reply=idv("r"+cid)
-  save()
+  c.replies.push(v("r"+cid))
+  save(); openPost(pid)
 }
-function delPost(id){
-  posts=posts.filter(p=>p.id!==id)
-  save()
-}
+
+/* ===== 관리자 ===== */
 function togglePin(id){
   const p=posts.find(x=>x.id===id)
   p.pin=!p.pin
   save()
 }
+function deletePost(id){
+  posts=posts.filter(p=>p.id!==id)
+  save()
+}
 
-/* ===== 유틸 ===== */
-function save(){
-  localStorage.setItem("posts",JSON.stringify(posts))
-  closeModal()
-  render()
-}
-function show(html){
-  modal.classList.remove("hidden")
-  modalContent.innerHTML=html
-}
-function closeModal(){
-  modal.classList.add("hidden")
-}
-function idv(id){return document.getElementById(id)?.value||""}
+/* ===== util ===== */
+function v(id){return document.getElementById(id)?.value||""}
 </script>
-
 </body>
 </html>
+
 
