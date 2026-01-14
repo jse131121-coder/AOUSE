@@ -38,29 +38,31 @@ img.thumb{max-width:100px;border-radius:8px;margin-top:6px}
 </header>
 
 <main id="postList"></main>
-
 <div id="modal" class="modal hidden"></div>
 
 <script>
+/* ====== FIXED LOGIN INFO ====== */
+const FIXED_ID = "전서은"
+const FIXED_CODE = "01024773752"
+
 /* ====== STORAGE ====== */
 let posts = JSON.parse(localStorage.getItem("AOUSE_POSTS")||"[]")
 let user = JSON.parse(localStorage.getItem("AOUSE_USER")||"null")
 
-/* ====== INIT ====== */
-if(posts.length===0){
+if(!localStorage.getItem("AOUSE_POSTS")){
   localStorage.setItem("AOUSE_POSTS","[]")
 }
+
+/* ====== INIT ====== */
 renderPosts()
 updateTopBtn()
 
-/* ====== HEADER ====== */
 document.getElementById("topBtn").onclick=()=>{
-  if(user) openProfile()
-  else openLogin()
+  user ? openProfile() : openLogin()
 }
 
 function updateTopBtn(){
-  document.getElementById("topBtn").innerText=user?"PROFILE":"ARRIVE"
+  document.getElementById("topBtn").innerText = user ? "PROFILE" : "ARRIVE"
 }
 
 /* ====== POSTS ====== */
@@ -80,11 +82,10 @@ function renderPosts(){
   })
 }
 
-/* ====== POST MODAL ====== */
+/* ====== POST ====== */
 function openPost(id){
   const p=posts.find(x=>x.id===id)
-  const m=document.getElementById("modal")
-  m.innerHTML=`
+  modal.innerHTML=`
   <div class="box">
     <h3>${p.title}</h3>
     <p>${p.content.replace(/\n/g,"<br>")}</p>
@@ -98,12 +99,12 @@ function openPost(id){
     <br><br>
     <button onclick="closeModal()">닫기</button>
   </div>`
-  m.classList.remove("hidden")
+  modal.classList.remove("hidden")
   renderComments(p)
 }
 
 function closeModal(){
-  document.getElementById("modal").classList.add("hidden")
+  modal.classList.add("hidden")
 }
 
 /* ====== COMMENTS ====== */
@@ -115,7 +116,8 @@ function renderComments(p){
     <div class="comment">
       <b>${c.author}</b><br>${c.text}
       ${c.image?`<img src="${c.image}" class="thumb">`:""}
-      ${user?`<div class="reply">
+      ${user?`
+      <div class="reply">
         <textarea id="r${i}" placeholder="대댓글"></textarea>
         <input type="file" id="ri${i}">
         <button onclick="addReply('${p.id}',${i})">등록</button>
@@ -129,7 +131,7 @@ function addComment(pid){
   const name=document.getElementById("cName").value
   const text=document.getElementById("cText").value
   const file=document.getElementById("cImg").files[0]
-  if(!name||!text)return alert("입력")
+  if(!name||!text)return alert("입력해줘")
   if(file){
     const r=new FileReader()
     r.onload=()=>saveComment(p,name,text,r.result)
@@ -181,8 +183,19 @@ function openLogin(){
 
 function login(){
   const id=document.getElementById("lid").value
-  if(!id)return
-  user={id,nickname:id,avatar:null,role:"user"}
+  const pw=document.getElementById("lpw").value
+
+  if(id!==FIXED_ID || pw!==FIXED_CODE){
+    alert("ALLOW 또는 ACODE가 틀렸어")
+    return
+  }
+
+  user={
+    id,
+    nickname:id,
+    avatar:null,
+    role:"admin"
+  }
   localStorage.setItem("AOUSE_USER",JSON.stringify(user))
   updateTopBtn()
   closeModal()
