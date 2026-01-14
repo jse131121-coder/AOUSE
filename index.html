@@ -4,28 +4,25 @@
 <meta charset="UTF-8">
 <title>AOUSE</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <style>
-*{box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI"}
-body{margin:0;background:#f3f4f6;color:#111}
+*{box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont}
+body{margin:0;background:#f3f3f3}
 #app{max-width:430px;margin:0 auto;height:100vh;display:flex;flex-direction:column}
 
 /* HEADER */
 header{
-  background:#fff;
-  padding:14px 16px;
-  border-bottom:1px solid #ddd;
-  display:flex;
-  justify-content:space-between;
-  align-items:center
+ background:#fff;
+ padding:14px 16px;
+ border-bottom:1px solid #ddd;
+ display:flex;
+ justify-content:space-between;
+ align-items:center
 }
 header b{font-size:18px}
 header button{
-  background:#000;
-  color:#fff;
-  border:none;
-  border-radius:20px;
-  padding:8px 16px;
+ background:#000;color:#fff;
+ border:none;border-radius:18px;
+ padding:8px 14px
 }
 
 /* CONTENT */
@@ -33,111 +30,102 @@ header button{
 
 /* LIST */
 #postList{
-  padding:12px;
-  overflow-y:auto;
-  height:100%;
+ padding:12px;
+ overflow-y:auto;
+ height:100%
 }
 .post{
-  background:#fff;
-  border-radius:16px;
-  padding:14px;
-  margin-bottom:12px;
+ background:#fff;
+ border-radius:16px;
+ padding:14px;
+ margin-bottom:10px;
 }
 .post.fixed{
-  border:2px solid #000;
-  background:#fafafa;
+ border:2px solid #000;
 }
-.pin{
-  font-size:11px;
-  font-weight:700;
-  margin-bottom:6px;
+.post h4{
+ margin:0;
+ font-size:15px;
 }
-.post h4{margin:0 0 6px}
-.post small{color:#777}
+.post small{
+ color:#777;
+ font-size:12px;
+}
 
 /* DETAIL */
 #detail{
-  padding:14px;
-  overflow-y:auto;
-  height:100%;
+ padding:14px;
+ overflow-y:auto;
+ height:100%
 }
 .back{
-  margin-bottom:10px;
-  background:none;
-  border:none;
-  font-size:16px;
+ background:none;border:none;
+ font-size:16px;margin-bottom:10px
 }
 .post-img{
-  width:100%;
-  border-radius:16px;
-  margin:12px 0;
+ width:100%;
+ border-radius:16px;
+ margin:12px 0
 }
 
 /* COMMENT */
 .comment{
-  background:#fff;
-  border-radius:12px;
-  padding:10px;
-  margin-top:8px;
+ background:#fff;
+ border-radius:12px;
+ padding:10px;
+ margin-top:8px
 }
 .reply{
-  margin-left:16px;
-  margin-top:6px;
-  background:#eee;
-}
-.comment button{
-  margin-top:6px;
-  background:none;
-  border:none;
-  color:#c00;
-  font-size:12px;
+ margin-left:14px;
+ margin-top:6px;
+ background:#eee
 }
 
 /* INPUT */
 .input{
-  display:flex;
-  gap:6px;
-  margin-top:8px;
+ display:flex;
+ gap:6px;
+ margin-top:8px
 }
 input,textarea{
-  width:100%;
-  padding:10px;
-  border-radius:12px;
-  border:1px solid #ccc;
+ width:100%;
+ padding:10px;
+ border-radius:12px;
+ border:1px solid #ccc
 }
 textarea{resize:none}
 
 /* FOOTER */
 footer{
-  background:#fff;
-  border-top:1px solid #ddd;
-  padding:10px;
-  display:flex;
-  gap:8px;
+ background:#fff;
+ border-top:1px solid #ddd;
+ padding:10px;
+ display:flex;
+ gap:8px
 }
 footer button{
-  flex:1;
-  padding:10px;
-  border-radius:20px;
-  border:none;
-  background:#000;
-  color:#fff;
+ flex:1;
+ padding:10px;
+ border-radius:20px;
+ border:none;
+ background:#000;
+ color:#fff
 }
 
 /* MODAL */
 .modal{
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,.4);
-  display:flex;
-  align-items:center;
-  justify-content:center;
+ position:fixed;
+ inset:0;
+ background:rgba(0,0,0,.4);
+ display:flex;
+ align-items:center;
+ justify-content:center
 }
 .modal-box{
-  background:#fff;
-  width:90%;
-  border-radius:18px;
-  padding:16px;
+ background:#fff;
+ width:90%;
+ border-radius:18px;
+ padding:16px
 }
 .hidden{display:none}
 </style>
@@ -145,21 +133,21 @@ footer button{
 
 <body>
 <div id="app">
-  <header>
-    <b>AOUSE</b>
-    <button onclick="openLogin()">ARRIVE</button>
-  </header>
+<header>
+ <b>AOUSE</b>
+ <button onclick="openLogin()">ARRIVE</button>
+</header>
 
-  <div id="content"></div>
+<div id="content"></div>
 
-  <footer>
-    <button onclick="openWrite()">글쓰기</button>
-    <button onclick="openProfile()">프로필</button>
-  </footer>
+<footer>
+ <button onclick="openWrite()">글쓰기</button>
+ <button onclick="openProfile()">프로필</button>
+</footer>
 </div>
 
 <div id="modal" class="modal hidden">
-  <div class="modal-box" id="modalBox"></div>
+ <div class="modal-box" id="modalBox"></div>
 </div>
 
 <script>
@@ -180,7 +168,6 @@ const content=document.getElementById("content");
 const modal=document.getElementById("modal");
 const modalBox=document.getElementById("modalBox");
 
-/* ===== 초기 ===== */
 renderList();
 
 /* ===== 리스트 ===== */
@@ -188,14 +175,13 @@ function renderList(){
  content.innerHTML=`<div id="postList"></div>`;
  const box=document.getElementById("postList");
 
- const sorted=[...state.posts].sort((a,b)=>b.fixed-a.fixed);
-
- sorted.forEach(p=>{
+ [...state.posts]
+ .sort((a,b)=>b.fixed-a.fixed)
+ .forEach(p=>{
   const i=state.posts.indexOf(p);
   box.innerHTML+=`
    <div class="post ${p.fixed?"fixed":""}" onclick="openDetail(${i})">
-    ${p.fixed?`<div class="pin">📌 PINNED</div>`:""}
-    <h4>${p.title}</h4>
+    <h4>${p.fixed?"📌 ":""}${p.title}</h4>
     <small>${p.author}</small>
    </div>`;
  });
@@ -213,8 +199,9 @@ function openDetail(i){
   <p>${p.text}</p>
 
   ${isAdmin()?`
-    <button onclick="toggleFix(${i})">${p.fixed?"고정 해제":"게시물 고정"}</button>
-    <button onclick="deletePost(${i})">게시물 삭제</button>
+   <button onclick="openEdit(${i})">수정</button>
+   <button onclick="deletePost(${i})">삭제</button>
+   <button onclick="toggleFix(${i})">${p.fixed?"고정 해제":"고정"}</button>
   `:""}
 
   <hr>
@@ -223,20 +210,64 @@ function openDetail(i){
   ${p.comments.map((c,ci)=>`
    <div class="comment">
     <b>${c.user}</b><br>${c.text}
-    ${isAdmin()?`<button onclick="deleteComment(${i},${ci})">삭제</button>`:""}
     ${c.replies.map(r=>`
       <div class="comment reply"><b>${r.user}</b><br>${r.text}</div>
     `).join("")}
     ${state.user?`
-      <div class="input">
-        <input placeholder="대댓글" onkeydown="addReply(event,${i},${ci})">
-      </div>`:""}
+     <div class="input">
+      <input placeholder="대댓글" onkeydown="addReply(event,${i},${ci})">
+     </div>`:""}
    </div>`).join("")}
 
   <div class="input">
-    <input placeholder="댓글" onkeydown="addComment(event,${i})">
+   <input placeholder="댓글" onkeydown="addComment(event,${i})">
   </div>
  </div>`;
+}
+
+/* ===== 글쓰기 / 수정 ===== */
+function openWrite(){
+ modalBox.innerHTML=`
+ <h3>글쓰기</h3>
+ <input id="wt" placeholder="제목"><br><br>
+ <textarea id="wc" rows="4" placeholder="내용"></textarea><br><br>
+ <input type="file" id="wi"><br><br>
+ <button onclick="writePost()">등록</button>`;
+ modal.classList.remove("hidden");
+}
+
+function openEdit(i){
+ const p=state.posts[i];
+ modalBox.innerHTML=`
+ <h3>게시물 수정</h3>
+ <input id="wt" value="${p.title}"><br><br>
+ <textarea id="wc" rows="4">${p.text}</textarea><br><br>
+ <input type="file" id="wi"><br><br>
+ <button onclick="editPost(${i})">저장</button>`;
+ modal.classList.remove("hidden");
+}
+
+function writePost(){savePost(null)}
+function editPost(i){savePost(i)}
+
+function savePost(i){
+ const t=wt.value,c=wc.value,f=wi.files[0];
+ if(f){
+  const r=new FileReader();
+  r.onload=()=>applyPost(i,t,c,r.result);
+  r.readAsDataURL(f);
+ }else applyPost(i,t,c,null);
+}
+
+function applyPost(i,t,c,img){
+ if(i===null){
+  state.posts.unshift({title:t,text:c,img,author:state.user?state.user.id:"익명",fixed:false,comments:[]});
+ }else{
+  state.posts[i].title=t;
+  state.posts[i].text=c;
+  if(img) state.posts[i].img=img;
+ }
+ save();modal.classList.add("hidden");renderList();
 }
 
 /* ===== 댓글 ===== */
@@ -250,36 +281,6 @@ function addReply(e,i,ci){
   state.posts[i].comments[ci].replies.push({user:state.user.id,text:e.target.value});
   save();openDetail(i);
  }}
-
-/* ===== 글쓰기 ===== */
-function openWrite(){
- modalBox.innerHTML=`
- <h3>글쓰기</h3>
- <input id="wt" placeholder="제목"><br><br>
- <textarea id="wc" rows="4" placeholder="내용"></textarea><br><br>
- <input type="file" id="wi"><br><br>
- <button onclick="writePost()">등록</button>`;
- modal.classList.remove("hidden");
-}
-function writePost(){
- const t=wt.value,c=wc.value,f=wi.files[0];
- if(f){
-  const r=new FileReader();
-  r.onload=()=>addPost(t,c,r.result);
-  r.readAsDataURL(f);
- } else addPost(t,c,null);
-}
-function addPost(t,c,img){
- state.posts.unshift({
-  title:t,
-  text:c,
-  img,
-  author:state.user?state.user.id:"익명",
-  fixed:false,
-  comments:[]
- });
- save();modal.classList.add("hidden");renderList();
-}
 
 /* ===== 로그인 ===== */
 function openLogin(){
@@ -296,8 +297,7 @@ function login(){
   state.user=acc;
   localStorage.setItem("user",JSON.stringify(acc));
   modal.classList.add("hidden");
-  alert("로그인 완료");
- } else alert("정보 불일치");
+ }else alert("불일치");
 }
 
 /* ===== 프로필 ===== */
@@ -317,13 +317,11 @@ function saveProfile(){
 
 /* ===== 관리자 ===== */
 function isAdmin(){return state.user&&state.user.role==="admin";}
-function toggleFix(i){state.posts[i].fixed=!state.posts[i].fixed;save();openDetail(i);}
 function deletePost(i){state.posts.splice(i,1);save();renderList();}
-function deleteComment(i,ci){state.posts[i].comments.splice(ci,1);save();openDetail(i);}
+function toggleFix(i){state.posts[i].fixed=!state.posts[i].fixed;save();renderList();}
 
 /* ===== 저장 ===== */
 function save(){localStorage.setItem("posts",JSON.stringify(state.posts));}
 </script>
 </body>
 </html>
-
