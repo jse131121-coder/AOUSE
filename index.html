@@ -4,60 +4,158 @@
 <meta charset="UTF-8">
 <title>AOUSE</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <style>
-*{box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont}
-body{margin:0;background:#f2f2f2;color:#111}
+*{box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI"}
+body{margin:0;background:#f3f4f6;color:#111}
 #app{max-width:430px;margin:0 auto;height:100vh;display:flex;flex-direction:column}
-header{background:#fff;padding:14px 16px;border-bottom:1px solid #ddd;display:flex;justify-content:space-between;align-items:center}
+
+/* HEADER */
+header{
+  background:#fff;
+  padding:14px 16px;
+  border-bottom:1px solid #ddd;
+  display:flex;
+  justify-content:space-between;
+  align-items:center
+}
 header b{font-size:18px}
-button{border:none;cursor:pointer}
+header button{
+  background:#000;
+  color:#fff;
+  border:none;
+  border-radius:20px;
+  padding:8px 16px;
+}
+
+/* CONTENT */
 #content{flex:1;overflow:hidden}
 
-/* 리스트 */
-#postList{padding:12px;overflow-y:auto;height:100%}
-.post{background:#fff;border-radius:14px;padding:14px;margin-bottom:12px}
-.post.fixed{border:2px solid #000}
+/* LIST */
+#postList{
+  padding:12px;
+  overflow-y:auto;
+  height:100%;
+}
+.post{
+  background:#fff;
+  border-radius:16px;
+  padding:14px;
+  margin-bottom:12px;
+}
+.post.fixed{
+  border:2px solid #000;
+  background:#fafafa;
+}
+.pin{
+  font-size:11px;
+  font-weight:700;
+  margin-bottom:6px;
+}
 .post h4{margin:0 0 6px}
 .post small{color:#777}
 
-/* 상세 */
-#detail{padding:14px;overflow-y:auto;height:100%}
-.back{margin-bottom:10px}
-img.post-img{width:100%;border-radius:14px;margin:12px 0}
+/* DETAIL */
+#detail{
+  padding:14px;
+  overflow-y:auto;
+  height:100%;
+}
+.back{
+  margin-bottom:10px;
+  background:none;
+  border:none;
+  font-size:16px;
+}
+.post-img{
+  width:100%;
+  border-radius:16px;
+  margin:12px 0;
+}
 
-/* 댓글 */
-.comment{background:#fff;border-radius:12px;padding:10px;margin-top:8px}
-.reply{margin-left:16px;background:#eee}
+/* COMMENT */
+.comment{
+  background:#fff;
+  border-radius:12px;
+  padding:10px;
+  margin-top:8px;
+}
+.reply{
+  margin-left:16px;
+  margin-top:6px;
+  background:#eee;
+}
+.comment button{
+  margin-top:6px;
+  background:none;
+  border:none;
+  color:#c00;
+  font-size:12px;
+}
 
-/* 입력 */
-.input{display:flex;gap:6px;margin-top:8px}
-input,textarea{width:100%;padding:10px;border-radius:10px;border:1px solid #ccc}
+/* INPUT */
+.input{
+  display:flex;
+  gap:6px;
+  margin-top:8px;
+}
+input,textarea{
+  width:100%;
+  padding:10px;
+  border-radius:12px;
+  border:1px solid #ccc;
+}
 textarea{resize:none}
 
-/* 하단 */
-footer{padding:10px;background:#fff;border-top:1px solid #ddd;display:flex;gap:8px}
-footer button{flex:1;padding:10px;border-radius:20px;background:#000;color:#fff}
+/* FOOTER */
+footer{
+  background:#fff;
+  border-top:1px solid #ddd;
+  padding:10px;
+  display:flex;
+  gap:8px;
+}
+footer button{
+  flex:1;
+  padding:10px;
+  border-radius:20px;
+  border:none;
+  background:#000;
+  color:#fff;
+}
 
-/* 모달 */
-.modal{position:fixed;inset:0;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center}
-.modal-box{background:#fff;width:90%;border-radius:16px;padding:16px}
+/* MODAL */
+.modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.4);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.modal-box{
+  background:#fff;
+  width:90%;
+  border-radius:18px;
+  padding:16px;
+}
 .hidden{display:none}
 </style>
 </head>
+
 <body>
-
 <div id="app">
-<header>
-  <b>AOUSE</b>
-  <button onclick="openLogin()">ARRIVE</button>
-</header>
+  <header>
+    <b>AOUSE</b>
+    <button onclick="openLogin()">ARRIVE</button>
+  </header>
 
-<div id="content"></div>
+  <div id="content"></div>
 
-<footer>
-  <button onclick="openWrite()">글쓰기</button>
-  <button onclick="openProfile()">프로필</button>
-</footer>
+  <footer>
+    <button onclick="openWrite()">글쓰기</button>
+    <button onclick="openProfile()">프로필</button>
+  </footer>
 </div>
 
 <div id="modal" class="modal hidden">
@@ -65,13 +163,14 @@ footer button{flex:1;padding:10px;border-radius:20px;background:#000;color:#fff}
 </div>
 
 <script>
-/* 계정 */
+/* ===== 계정 ===== */
 const ACCOUNTS=[
  {id:"전서은",code:"01024773752",role:"admin"},
  {id:"ABLE",code:"1111",role:"user"},
  {id:"ABLE_official",code:"2222",role:"user"}
 ];
 
+/* ===== 상태 ===== */
 let state={
  user:JSON.parse(localStorage.getItem("user"))||null,
  posts:JSON.parse(localStorage.getItem("posts"))||[]
@@ -81,25 +180,28 @@ const content=document.getElementById("content");
 const modal=document.getElementById("modal");
 const modalBox=document.getElementById("modalBox");
 
-/* 초기 */
+/* ===== 초기 ===== */
 renderList();
 
-/* 리스트 */
+/* ===== 리스트 ===== */
 function renderList(){
  content.innerHTML=`<div id="postList"></div>`;
  const box=document.getElementById("postList");
- state.posts
- .sort((a,b)=>b.fixed-a.fixed)
- .forEach((p,i)=>{
- box.innerHTML+=`
- <div class="post ${p.fixed?"fixed":""}" onclick="openDetail(${i})">
-   <h4>${p.title}</h4>
-   <small>${p.author}</small>
- </div>`;
+
+ const sorted=[...state.posts].sort((a,b)=>b.fixed-a.fixed);
+
+ sorted.forEach(p=>{
+  const i=state.posts.indexOf(p);
+  box.innerHTML+=`
+   <div class="post ${p.fixed?"fixed":""}" onclick="openDetail(${i})">
+    ${p.fixed?`<div class="pin">📌 PINNED</div>`:""}
+    <h4>${p.title}</h4>
+    <small>${p.author}</small>
+   </div>`;
  });
 }
 
-/* 상세 */
+/* ===== 상세 ===== */
 function openDetail(i){
  const p=state.posts[i];
  content.innerHTML=`
@@ -109,65 +211,77 @@ function openDetail(i){
   <small>${p.author}</small>
   ${p.img?`<img class="post-img" src="${p.img}">`:""}
   <p>${p.text}</p>
+
   ${isAdmin()?`
-  <button onclick="fixPost(${i})">고정</button>
-  <button onclick="delPost(${i})">삭제</button>`:""}
+    <button onclick="toggleFix(${i})">${p.fixed?"고정 해제":"게시물 고정"}</button>
+    <button onclick="deletePost(${i})">게시물 삭제</button>
+  `:""}
+
   <hr>
   <h4>댓글</h4>
+
   ${p.comments.map((c,ci)=>`
    <div class="comment">
     <b>${c.user}</b><br>${c.text}
-    ${isAdmin()?`<button onclick="delComment(${i},${ci})">삭제</button>`:""}
+    ${isAdmin()?`<button onclick="deleteComment(${i},${ci})">삭제</button>`:""}
     ${c.replies.map(r=>`
-     <div class="comment reply"><b>${r.user}</b><br>${r.text}</div>
+      <div class="comment reply"><b>${r.user}</b><br>${r.text}</div>
     `).join("")}
     ${state.user?`
-    <div class="input">
-      <input placeholder="대댓글" onkeydown="reply(event,${i},${ci})">
-    </div>`:""}
+      <div class="input">
+        <input placeholder="대댓글" onkeydown="addReply(event,${i},${ci})">
+      </div>`:""}
    </div>`).join("")}
+
   <div class="input">
-   <input placeholder="댓글" onkeydown="comment(event,${i})">
+    <input placeholder="댓글" onkeydown="addComment(event,${i})">
   </div>
  </div>`;
 }
 
-/* 댓글 */
-function comment(e,i){
+/* ===== 댓글 ===== */
+function addComment(e,i){
  if(e.key==="Enter"){
- state.posts[i].comments.push({user:"익명",text:e.target.value,replies:[]});
- save();openDetail(i);
+  state.posts[i].comments.push({user:"익명",text:e.target.value,replies:[]});
+  save();openDetail(i);
  }}
-function reply(e,i,ci){
+function addReply(e,i,ci){
  if(e.key==="Enter"){
- state.posts[i].comments[ci].replies.push({user:state.user.id,text:e.target.value});
- save();openDetail(i);
+  state.posts[i].comments[ci].replies.push({user:state.user.id,text:e.target.value});
+  save();openDetail(i);
  }}
 
-/* 글쓰기 */
+/* ===== 글쓰기 ===== */
 function openWrite(){
  modalBox.innerHTML=`
  <h3>글쓰기</h3>
  <input id="wt" placeholder="제목"><br><br>
  <textarea id="wc" rows="4" placeholder="내용"></textarea><br><br>
  <input type="file" id="wi"><br><br>
- <button onclick="write()">등록</button>`;
+ <button onclick="writePost()">등록</button>`;
  modal.classList.remove("hidden");
 }
-function write(){
+function writePost(){
  const t=wt.value,c=wc.value,f=wi.files[0];
  if(f){
- const r=new FileReader();
- r.onload=()=>addPost(t,c,r.result);
- r.readAsDataURL(f);
+  const r=new FileReader();
+  r.onload=()=>addPost(t,c,r.result);
+  r.readAsDataURL(f);
  } else addPost(t,c,null);
 }
 function addPost(t,c,img){
- state.posts.unshift({title:t,text:c,img,author:state.user?state.user.id:"익명",fixed:false,comments:[]});
+ state.posts.unshift({
+  title:t,
+  text:c,
+  img,
+  author:state.user?state.user.id:"익명",
+  fixed:false,
+  comments:[]
+ });
  save();modal.classList.add("hidden");renderList();
 }
 
-/* 로그인 */
+/* ===== 로그인 ===== */
 function openLogin(){
  modalBox.innerHTML=`
  <h3>ARRIVE</h3>
@@ -177,22 +291,21 @@ function openLogin(){
  modal.classList.remove("hidden");
 }
 function login(){
- const acc=ACCOUNTS.find(a=>a.id===lid.value && a.code===lcode.value);
+ const acc=ACCOUNTS.find(a=>a.id===lid.value&&a.code===lcode.value);
  if(acc){
- state.user=acc;
- localStorage.setItem("user",JSON.stringify(acc));
- modal.classList.add("hidden");
- alert("로그인 완료");
- } else alert("불일치");
+  state.user=acc;
+  localStorage.setItem("user",JSON.stringify(acc));
+  modal.classList.add("hidden");
+  alert("로그인 완료");
+ } else alert("정보 불일치");
 }
 
-/* 프로필 */
+/* ===== 프로필 ===== */
 function openProfile(){
  if(!state.user){alert("로그인 필요");return;}
  modalBox.innerHTML=`
  <h3>프로필 수정</h3>
  <input id="pn" value="${state.user.id}"><br><br>
- <input type="file" id="pi"><br><br>
  <button onclick="saveProfile()">저장</button>`;
  modal.classList.remove("hidden");
 }
@@ -202,14 +315,15 @@ function saveProfile(){
  modal.classList.add("hidden");
 }
 
-/* 관리자 */
-function isAdmin(){return state.user && state.user.role==="admin";}
-function delPost(i){state.posts.splice(i,1);save();renderList();}
-function fixPost(i){state.posts[i].fixed=!state.posts[i].fixed;save();openDetail(i);}
-function delComment(i,ci){state.posts[i].comments.splice(ci,1);save();openDetail(i);}
+/* ===== 관리자 ===== */
+function isAdmin(){return state.user&&state.user.role==="admin";}
+function toggleFix(i){state.posts[i].fixed=!state.posts[i].fixed;save();openDetail(i);}
+function deletePost(i){state.posts.splice(i,1);save();renderList();}
+function deleteComment(i,ci){state.posts[i].comments.splice(ci,1);save();openDetail(i);}
 
-/* 저장 */
+/* ===== 저장 ===== */
 function save(){localStorage.setItem("posts",JSON.stringify(state.posts));}
 </script>
 </body>
 </html>
+
