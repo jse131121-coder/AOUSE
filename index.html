@@ -12,9 +12,9 @@ header{background:#fff;padding:14px 16px;display:flex;justify-content:space-betw
 .logo{font-weight:700;font-size:18px}
 .btn{background:#222;color:#fff;border:none;border-radius:20px;padding:8px 16px;cursor:pointer}
 main{padding:16px}
-
 .post{background:#fff;border-radius:18px;padding:16px;margin-bottom:12px;cursor:pointer}
 .post small{color:#777}
+.writeBtn{position:fixed;right:16px;bottom:20px}
 
 .modal{position:fixed;inset:0;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;z-index:10}
 .hidden{display:none}
@@ -23,7 +23,6 @@ input,textarea{width:100%;margin:8px 0;padding:10px;border-radius:12px;border:1p
 textarea{min-height:80px}
 .row{display:flex;justify-content:space-between;gap:8px}
 img.thumb{max-width:100px;border-radius:8px;margin-top:6px}
-
 .comment{border-top:1px solid #eee;padding-top:10px;margin-top:10px}
 .reply{margin-left:16px;border-left:2px solid #eee;padding-left:10px;margin-top:6px}
 .badge{color:#4fa3ff;font-size:12px;margin-left:4px}
@@ -38,34 +37,35 @@ img.thumb{max-width:100px;border-radius:8px;margin-top:6px}
 </header>
 
 <main id="postList"></main>
+
+<button id="writeBtn" class="btn writeBtn hidden">WRITE</button>
+
 <div id="modal" class="modal hidden"></div>
 
 <script>
-/* ====== FIXED LOGIN INFO ====== */
-const FIXED_ID = "전서은"
-const FIXED_CODE = "01024773752"
+/* ===== 로그인 정보 ===== */
+const FIXED_ID="전서은"
+const FIXED_CODE="01024773752"
 
-/* ====== STORAGE ====== */
-let posts = JSON.parse(localStorage.getItem("AOUSE_POSTS")||"[]")
-let user = JSON.parse(localStorage.getItem("AOUSE_USER")||"null")
+/* ===== 저장소 ===== */
+let posts=JSON.parse(localStorage.getItem("AOUSE_POSTS")||"[]")
+let user=JSON.parse(localStorage.getItem("AOUSE_USER")||"null")
 
-if(!localStorage.getItem("AOUSE_POSTS")){
-  localStorage.setItem("AOUSE_POSTS","[]")
-}
+localStorage.setItem("AOUSE_POSTS",JSON.stringify(posts))
 
-/* ====== INIT ====== */
 renderPosts()
-updateTopBtn()
+updateUI()
 
-document.getElementById("topBtn").onclick=()=>{
-  user ? openProfile() : openLogin()
+/* ===== UI ===== */
+document.getElementById("topBtn").onclick=()=>user?openProfile():openLogin()
+document.getElementById("writeBtn").onclick=openWrite
+
+function updateUI(){
+  document.getElementById("topBtn").innerText=user?"PROFILE":"ARRIVE"
+  document.getElementById("writeBtn").classList.toggle("hidden",!user)
 }
 
-function updateTopBtn(){
-  document.getElementById("topBtn").innerText = user ? "PROFILE" : "ARRIVE"
-}
-
-/* ====== POSTS ====== */
+/* ===== 게시글 목록 ===== */
 function renderPosts(){
   const list=document.getElementById("postList")
   list.innerHTML=""
@@ -73,16 +73,47 @@ function renderPosts(){
   posts.forEach(p=>{
     const d=document.createElement("div")
     d.className="post"
-    d.innerHTML=`
-      ${p.pinned?"📌 ":""}<b>${p.title}</b><br>
-      <small>${p.author}${p.role!=="user"?'<span class="badge">✔</span>':""}</small>
-    `
+    d.innerHTML=`${p.pinned?"📌 ":""}<b>${p.title}</b><br>
+    <small>${p.author}<span class="badge">✔</span></small>`
     d.onclick=()=>openPost(p.id)
     list.appendChild(d)
   })
 }
 
-/* ====== POST ====== */
+/* ===== 글쓰기 ===== */
+function openWrite(){
+  modal.innerHTML=`
+  <div class="box">
+    <h3>WRITE</h3>
+    <input id="wTitle" placeholder="제목">
+    <textarea id="wContent" placeholder="내용"></textarea>
+    <label><input type="checkbox" id="wPin"> 고정</label>
+    <div class="row">
+      <button onclick="closeModal()">CANCEL</button>
+      <button class="btn" onclick="savePost()">POST</button>
+    </div>
+  </div>`
+  modal.classList.remove("hidden")
+}
+
+function savePost(){
+  const t=wTitle.value,c=wContent.value
+  if(!t||!c)return alert("입력해줘")
+  posts.push({
+    id:Date.now(),
+    title:t,
+    content:c,
+    author:user.nickname,
+    pinned:wPin.checked,
+    comments:[],
+    time:Date.now()
+  })
+  save()
+  closeModal()
+  renderPosts()
+}
+
+/* ===== 게시글 상세 ===== */
 function openPost(id){
   const p=posts.find(x=>x.id===id)
   modal.innerHTML=`
@@ -93,9 +124,9 @@ function openPost(id){
     <h4>댓글</h4>
     <div id="comments"></div>
     <input id="cName" placeholder="닉네임">
-    <textarea id="cText" placeholder="댓글 입력"></textarea>
+    <textarea id="cText" placeholder="댓글"></textarea>
     <input type="file" id="cImg">
-    <button class="btn" onclick="addComment('${id}')">등록</button>
+    <button class="btn" onclick="addComment(${id})">등록</button>
     <br><br>
     <button onclick="closeModal()">닫기</button>
   </div>`
@@ -103,16 +134,11 @@ function openPost(id){
   renderComments(p)
 }
 
-function closeModal(){
-  modal.classList.add("hidden")
-}
-
-/* ====== COMMENTS ====== */
+/* ===== 댓글 / 대댓글 ===== */
 function renderComments(p){
-  const box=document.getElementById("comments")
-  box.innerHTML=""
+  comments.innerHTML=""
   p.comments.forEach((c,i)=>{
-    box.innerHTML+=`
+    comments.innerHTML+=`
     <div class="comment">
       <b>${c.author}</b><br>${c.text}
       ${c.image?`<img src="${c.image}" class="thumb">`:""}
@@ -120,53 +146,30 @@ function renderComments(p){
       <div class="reply">
         <textarea id="r${i}" placeholder="대댓글"></textarea>
         <input type="file" id="ri${i}">
-        <button onclick="addReply('${p.id}',${i})">등록</button>
+        <button onclick="addReply(${p.id},${i})">등록</button>
       </div>`:""}
     </div>`
   })
 }
 
-function addComment(pid){
-  const p=posts.find(x=>x.id===pid)
-  const name=document.getElementById("cName").value
-  const text=document.getElementById("cText").value
-  const file=document.getElementById("cImg").files[0]
-  if(!name||!text)return alert("입력해줘")
-  if(file){
-    const r=new FileReader()
-    r.onload=()=>saveComment(p,name,text,r.result)
-    r.readAsDataURL(file)
-  }else saveComment(p,name,text,null)
-}
-
-function saveComment(p,name,text,img){
-  p.comments.push({author:name,text,image:img,replies:[]})
-  save()
-  openPost(p.id)
-}
-
-function addReply(pid,i){
-  const p=posts.find(x=>x.id===pid)
-  const text=document.getElementById("r"+i).value
-  const file=document.getElementById("ri"+i).files[0]
-  if(!text)return
-  if(file){
-    const r=new FileReader()
-    r.onload=()=>saveReply(p,i,text,r.result)
-    r.readAsDataURL(file)
-  }else saveReply(p,i,text,null)
-}
-
-function saveReply(p,i,text,img){
-  p.comments[i].replies.push({
-    author:user.nickname,
-    text,image:img
+function addComment(id){
+  const p=posts.find(x=>x.id===id)
+  if(!cName.value||!cText.value)return
+  handleFile(cImg,f=>{
+    p.comments.push({author:cName.value,text:cText.value,image:f,replies:[]})
+    save();openPost(id)
   })
-  save()
-  openPost(p.id)
 }
 
-/* ====== LOGIN ====== */
+function addReply(id,i){
+  const p=posts.find(x=>x.id===id)
+  handleFile(document.getElementById("ri"+i),f=>{
+    p.comments[i].replies.push({author:user.nickname,text:document.getElementById("r"+i).value,image:f})
+    save();openPost(id)
+  })
+}
+
+/* ===== 로그인 ===== */
 function openLogin(){
   modal.innerHTML=`
   <div class="box">
@@ -182,26 +185,14 @@ function openLogin(){
 }
 
 function login(){
-  const id=document.getElementById("lid").value
-  const pw=document.getElementById("lpw").value
-
-  if(id!==FIXED_ID || pw!==FIXED_CODE){
-    alert("ALLOW 또는 ACODE가 틀렸어")
-    return
-  }
-
-  user={
-    id,
-    nickname:id,
-    avatar:null,
-    role:"admin"
-  }
+  if(lid.value!==FIXED_ID||lpw.value!==FIXED_CODE)return alert("틀렸어")
+  user={nickname:FIXED_ID}
   localStorage.setItem("AOUSE_USER",JSON.stringify(user))
-  updateTopBtn()
+  updateUI()
   closeModal()
 }
 
-/* ====== PROFILE ====== */
+/* ===== 프로필 ===== */
 function openProfile(){
   modal.innerHTML=`
   <div class="box">
@@ -217,25 +208,27 @@ function openProfile(){
 }
 
 function saveProfile(){
-  const n=document.getElementById("pn").value
-  const f=document.getElementById("pi").files[0]
-  if(f){
-    const r=new FileReader()
-    r.onload=()=>{user.nickname=n;user.avatar=r.result;finishProfile()}
-    r.readAsDataURL(f)
-  }else{user.nickname=n;finishProfile()}
+  handleFile(pi,f=>{
+    user.nickname=pn.value
+    localStorage.setItem("AOUSE_USER",JSON.stringify(user))
+    closeModal()
+    renderPosts()
+  })
 }
 
-function finishProfile(){
-  localStorage.setItem("AOUSE_USER",JSON.stringify(user))
-  closeModal()
+/* ===== 공통 ===== */
+function handleFile(input,cb){
+  const f=input.files[0]
+  if(!f)return cb(null)
+  const r=new FileReader()
+  r.onload=()=>cb(r.result)
+  r.readAsDataURL(f)
 }
-
-/* ====== SAVE ====== */
-function save(){
-  localStorage.setItem("AOUSE_POSTS",JSON.stringify(posts))
-}
+function closeModal(){modal.classList.add("hidden")}
+function save(){localStorage.setItem("AOUSE_POSTS",JSON.stringify(posts))}
 </script>
 
 </body>
 </html>
+
+
